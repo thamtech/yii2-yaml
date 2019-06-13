@@ -1,0 +1,25 @@
+{
+    "name": "thamtech/yii2-yaml",
+    "description": "A Yaml helper for Yii2",
+    "type": "yii2-extension",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Tyler Ham",
+            "email": "tyler@thamtech.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=5.6.0",
+        "yiisoft/yii2": ">=2.0.14 <2.1",
+        "symfony/yaml": "~3.4"
+    },
+    "autoload": {
+        "psr-4": { "thamtech\\yaml\\": "src/" }
+    },
+    "require-dev": {
+        "php": ">=7.2",
+        "phpunit/phpunit": "~6.0"
+    }
+}
