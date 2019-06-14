@@ -303,6 +303,111 @@ echo $yaml;
 #         name: Susan
 ```
 
+### Configuring Default Handlers
+
+You may not want to have to send a configuration array with one or more
+custom handlers every time you call `Yaml::encode()` or `Yaml::decode()`.
+The `Yaml` component sets its default `Parser` and `Dumper` definitions into
+`Yii::$container`. You can set your own default `Parser` and `Dumper`
+definitions there with your own handlers.
+
+To not use any handlers by default (not even the `Yaml` component's default
+handlers):
+
+```php
+<?php
+use Yii;
+
+Yii::$container->set('thamtech\yaml\Parser');
+Yii::$container->set('thamtech\yaml\Dumper');
+
+// alternatively, in your application configuration:
+[
+    'container' => [
+        'definitions' => [
+            'thamtech\yaml\Parser' => [],
+            'thamtech\yaml\Dumper' => [],
+        ],
+    ],
+];
+```
+
+However, it is probably more likely that you will want to start with the `Yaml`
+component's default handlers and override them or add your own. The
+`Yaml::getDumperDefinition()` and `Yaml::getParserDefinition()` methods are
+a convenient way to get Parser and Dumper definitions ready for setting
+in the `Yii::$container`.
+
+```php
+use Yii;
+use thamtech\yaml\helpers\Yaml;
+
+Yii::$container->setDefinitions([
+    'thamtech\yaml\Parser' => Yaml::getParserDefinition([
+        'on yii/helpers/ReplaceArrayValue' => new \yii\helpers\UnsetArrayValue(),
+        'on yii/helpers/UnsetArrayValue' => new \yii\helpers\UnsetArrayValue(),
+        'on lookupIdFromEmployeeNumber' => function ($event) {
+            // get the value associated with the `!lookupIdFromEmployeeNumber` tag
+            $value = $event->value;
+            
+            // find the person's id and add it to the value
+            $value['id'] = Employee::find()
+                ->select(['id'])
+                ->where(['employee_number' => $value['employee_number']])
+                ->scalar();
+            
+            // set the updated value in the event; the value set in `value` will
+            // replace the `TaggedValue` object in the parsed yaml data as long as we
+            // mark that the event was handled
+            $event->value = $value;
+            $event->handled = true;
+            
+            // as a shortcut, the following is equivalent to the previous two lines:
+            $event->handleValue($value);
+        },
+    ]),
+    'thamtech\yaml\Dumper' => Yaml::getDumperDefinition([
+        'on yii/helpers/ReplaceArrayValue' => new \yii\helpers\UnsetArrayValue(),
+        'on yii/helpers/UnsetArrayValue' => new \yii\helpers\UnsetArrayValue(),
+        'on Some\Package\EmployeeWithoutId' => function ($event) {
+            // get the EmployeeWithoutId object
+            $value = $event->value;
+            
+            // decode the object into a TaggedValue object
+            $event->value = new TaggedValue('lookupIdFromEmployeeNumber', [
+                'employee_number' => $value->getEmployeeNumber(),
+                'name' => $value->getName(),
+            ]);
+            $event->handled = true;
+            
+            // as a shortcut, the following is equivalent to setting `$event->value`
+            // and setting `$event->handled = true`.
+            $event->handleValue(
+                new TaggedValue('lookupIdFromEmployeeNumber', [
+                    'employee_number' => $value->getEmployeeNumber(),
+                    'name' => $value->getName(),
+                ])
+            );
+        },
+    ]),
+]);
+
+
+// alternatively, in your application configuration:
+[
+    'container' => [
+        'definitions' => [
+            'thamtech\yaml\Parser' => Yaml::getParserDefinition([
+                // ...
+            ]),
+            'thamtech\yaml\Dumper' => Yaml::getDumperDefinition([
+                // ...
+            ]),
+        ],
+    ],
+];
+```
+
 ### Yaml Response Formatter
 
 You can add the `YamlResponseFormatter` as a `yaml` formatter in your

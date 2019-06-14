@@ -13,6 +13,7 @@ use Symfony\Component\Yaml\Yaml as SymfonyYaml;
 use thamtech\yaml\Dumper;
 use thamtech\yaml\Parser;
 use yii\base\InvalidArgumentException;
+use yii\base\InvalidConfigException;
 use yii\di\Instance;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
@@ -47,7 +48,8 @@ class BaseYaml
      */
     public static function encode($value, $dumper = [], $inline = 2, $flags = 0)
     {
-        $dumper = Instance::ensure(ArrayHelper::merge(static::defaultDumperConfig(), $dumper), Dumper::class);
+        static::ensureDumperDefined();
+        $dumper = Instance::ensure($dumper, Dumper::class);
         $yaml = $dumper->dump($value, $inline, 0, $flags);
         return $yaml;
     }
@@ -69,7 +71,8 @@ class BaseYaml
      */
     public static function decode($yaml, $parser = [], $flags = 512)
     {
-        $parser = Instance::ensure(ArrayHelper::merge(static::defaultParserConfig(), $parser), Parser::class);
+        static::ensureParserDefined();
+        $parser = Instance::ensure($parser, Parser::class);
 
         if (!is_scalar($yaml)) {
             throw new InvalidArgumentException('Invalid YAML data.');
@@ -108,6 +111,110 @@ class BaseYaml
     }
 
     /**
+     * Get a definition of the parser that can be registered
+     * with [[Container::setDefinitions()]].
+     *
+     * @param  array $config a configuration array to be merged with our
+     *     default configuration
+     *
+     * @return array the definition array
+     */
+    public static function getParserDefinition(array $config = [])
+    {
+        return static::getDependencyDefinition(Parser::class, 'defaultParserConfig', $config);
+    }
+
+    /**
+     * Get a definition of the dumper that can be registered
+     * with [[Container::setDefinitions()]].
+     *
+     * @param  array $config a configuration array to be merged with our
+     *     default configuration
+     *
+     * @return array the definition array
+     */
+    public static function getDumperDefinition(array $config = [])
+    {
+        return static::getDependencyDefinition(Dumper::class, 'defaultDumperConfig', $config);
+    }
+
+    /**
+     * @internal
+     *
+     * Builds a Dumper or Parser dependency
+     *
+     * @param  \yii\di\Container $container
+     *
+     * @param  array $params parameters
+     *    - `class` key - (required) the class of dependency to build
+     *    - `baseConfigs` key - array of configuration arrays to merge
+     *
+     * @param  array $config additional configuration array to merge
+     *
+     * @return Dumper|Parser the dependency object, depending on the specified
+     *     class parameter.
+     */
+    public static function buildDependency($container, $params = [], $config = [])
+    {
+        if (empty($params['class'])) {
+            throw new InvalidConfigException('A "class" parameter must be provided to build the dependency.');
+        }
+
+        $class = $params['class'];
+        unset($params['class']);
+
+        $combinedConfig = [];
+        if (is_array($params['baseConfigs'])) {
+            foreach ($params['baseConfigs'] as $baseConfig) {
+                if (is_callable($baseConfig)) {
+                    $baseConfig = call_user_func($baseConfig);
+                }
+                $combinedConfig = ArrayHelper::merge($combinedConfig, $baseConfig);
+            }
+        }
+        unset($params['baseConfigs']);
+
+        $combinedConfig = ArrayHelper::merge($combinedConfig, $config);
+
+        // We want to delegate to container set constructor/configurable params,
+        // but we can't use the provided $container or Yii::$container since
+        // they will lead us straight back to this method in an infinite loop.
+        // So we create an empty container that doesn't know about $class so it
+        // can just build it normally with the provided $params and
+        // $combinedConfig
+        $nullContainer = Yii::createObject('yii\di\Container');
+        return $nullContainer->get($class, $params, $combinedConfig);
+    }
+
+    /**
+     * Get a definition of the specified dependency that can be registered
+     * with [[Container::setDefinitions()]].
+     *
+     * @param  string $class class name of the dependency
+     *
+     * @param  string $defaultConfigMethod name of static method that provides
+     *     our default configuration array for the dependency.
+     *
+     * @param  array $config a configuration array to be merged with our
+     *     default configuration
+     *
+     * @return array the definition array
+     */
+    protected static function getDependencyDefinition($class, $defaultConfigMethod, array $config = [])
+    {
+        return [
+            [static::class, 'buildDependency'],
+            [
+                'class' => $class,
+                'baseConfigs' => [
+                    static::class => [static::class, $defaultConfigMethod],
+                    __METHOD__ => $config,
+                ],
+            ],
+        ];
+    }
+
+    /**
      * Get the default parser config
      *
      * @return array
@@ -115,7 +222,6 @@ class BaseYaml
     protected static function defaultParserConfig()
     {
         return [
-            'class' => Parser::class,
             'on yii/helpers/UnsetArrayValue' => function ($event) {
                 if (!empty($event->value)) {
                     throw new InvalidArgumentException(sprintf('A !yii/helpers/UnsetArrayValue tag cannot contain a value. The value provided was %s', json_encode($event->value)));
@@ -139,7 +245,6 @@ class BaseYaml
         $expressions = [];
 
         return [
-            'class' => Dumper::class,
             'on yii\helpers\UnsetArrayValue' => function ($event) {
                 $event->handleValue(new TaggedValue('yii/helpers/UnsetArrayValue', []));
             },
@@ -217,5 +322,40 @@ class BaseYaml
         }
 
         return $lines;
+    }
+
+    /**
+     * Ensure that a definition has been set for the specified dependency
+     *
+     * @param  string $class class name of the dependency
+     *
+     * @param  string $defaultConfigMethod name of static method that provides
+     *     our default configuration array for the dependency.
+     */
+    private static function ensureDependencyDefined($class, $defaultConfigMethod)
+    {
+        if (Yii::$container->has($class)) {
+            return;
+        }
+
+        Yii::$container->setDefinitions([
+            $class => static::getDependencyDefinition($class, $defaultConfigMethod),
+        ]);
+    }
+
+    /**
+     * Ensure that a definition has been set for the dumper in `Yii::$container`
+     */
+    private static function ensureDumperDefined()
+    {
+        static::ensureDependencyDefined(Dumper::class, 'defaultDumperConfig');
+    }
+
+    /**
+     * Ensure that a definition has been set for the parser in `Yii::$container`
+     */
+    private static function ensureParserDefined()
+    {
+        static::ensureDependencyDefined(Parser::class, 'defaultParserConfig');
     }
 }

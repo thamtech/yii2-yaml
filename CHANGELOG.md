@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 ### Added
 - `$event->handleValue($value)` shortcut for setting the `value`, and setting
   `$event->handled = true`.
+- Added ability to set and override parser and dumper handlers globally
+  via dependency injection mechanisms
 
 ### Changed
 - *Breaking Change* - Automatically unwrap value from inside TaggedValue during
