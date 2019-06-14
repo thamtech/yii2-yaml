@@ -23,4 +23,15 @@ class ValueEvent extends Event
      * be replaced by event handlers.
      */
     public $value;
+
+    /**
+     * This is a shortcut for [[setValue()]] and setting [[handled]] to true.
+     *
+     * @param mixed $value the value to set
+     */
+    public function handleValue($value)
+    {
+        $this->setValue($value);
+        $this->handled = true;
+    }
 }

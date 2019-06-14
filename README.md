@@ -144,6 +144,9 @@ $data = Yaml::decode($yaml, [
         // mark that the event was handled
         $event->value = $value;
         $event->handled = true;
+        
+        // as a shortcut, the following is equivalent to the previous two lines:
+        $event->handleValue($value);
     },
 ]);
 
@@ -274,6 +277,15 @@ $yaml = Yaml::encode($data, [
             'name' => $value->getName(),
         ]);
         $event->handled = true;
+        
+        // as a shortcut, the following is equivalent to setting `$event->value`
+        // and setting `$event->handled = true`.
+        $event->handleValue(
+            new TaggedValue('lookupIdFromEmployeeNumber', [
+                'employee_number' => $value->getEmployeeNumber(),
+                'name' => $value->getName(),
+            ])
+        );
     },
 ]);
 

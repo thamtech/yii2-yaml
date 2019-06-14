@@ -121,13 +121,11 @@ class BaseYaml
                 if (!empty($taggedValue->getValue())) {
                     throw new InvalidArgumentException(sprintf('A !yii/helpers/UnsetArrayValue tag cannot contain a value. The value provided was %s', json_encode($taggedValue->getValue())));
                 }
-                $event->value = new UnsetArrayValue();
-                $event->handled = true;
+                $event->handleValue(new UnsetArrayValue());
             },
             'on yii/helpers/ReplaceArrayValue' => function ($event) {
                 $taggedValue = $event->value;
-                $event->value = new ReplaceArrayValue($taggedValue->getValue());
-                $event->handled = true;
+                $event->handleValue(new ReplaceArrayValue($taggedValue->getValue()));
             }
         ];
     }
@@ -145,58 +143,54 @@ class BaseYaml
         return [
             'class' => Dumper::class,
             'on yii\helpers\UnsetArrayValue' => function ($event) {
-                $event->value = new TaggedValue('yii/helpers/UnsetArrayValue', []);
-                $event->handled = true;
+                $event->handleValue(new TaggedValue('yii/helpers/UnsetArrayValue', []));
             },
             'on yii\helpers\ReplaceArrayValue' => function ($event) {
-                $replacement = $event->value->value;
-                $event->value = new TaggedValue('yii/helpers/ReplaceArrayValue', $replacement);
-                $event->handled = true;
+                $replaceArrayValue = $event->value;
+                $event->handleValue(new TaggedValue('yii/helpers/ReplaceArrayValue', $replaceArrayValue->value));
             },
             'on yii\web\JsExpression' => function ($event) use (&$expressions, $expPrefix) {
                 $data = $event->value;
                 $token = "!{[$expPrefix=" . count($expressions) . ']}!';
                 $expressions['"' . $token . '"'] = $data->expression;
 
-                $event->value = $token;
-                $event->handled = true;
+                $event->handleValue($token);
             },
             'on ' . Dumper::EVENT_AFTER_DUMP => function ($event) use (&$expressions) {
                 $yaml = $event->value;
                 $event->value = $expressions === [] ? $yaml : strtr($yaml, $expressions);
             },
             'on JsonSerializable' => function ($event) {
-                $event->value = Json::decode($event->value->jsonSerialize(), true);
-                if ($event->value === []) {
-                    $event->value = new \stdClass();
+                $value = Json::decode($event->value->jsonSerialize(), true);
+                if ($value === []) {
+                    $value = new \stdClass();
                 }
-                $event->handled = true;
+                $event->handleValue($value);
             },
             'on yii\base\Arrayable' => function ($event) {
-                $event->value = $event->value->toArray();
-                if ($event->value === []) {
-                    $event->value = new \stdClass();
+                $value = $event->value->toArray();
+                if ($value === []) {
+                    $value = new \stdClass();
                 }
-                $event->handled = true;
+                $event->handleValue($value);
             },
             'on SimpleXMLElement' => function ($event) {
-                $event->value = (array) $event->value;
-                if ($event->value === []) {
-                    $event->value = new \stdClass();
+                $value = (array) $event->value;
+                if ($value === []) {
+                    $value = new \stdClass();
                 }
-                $event->handled = true;
+                $event->handleValue($value);
             },
             'on ' . Dumper::EVENT_UNHANDLED_OBJECT => function ($event) {
                 $result = [];
                 foreach ($event->value as $name => $value) {
                     $result[$name] = $value;
                 }
-                $event->value = $result;
 
-                if ($event->value === []) {
-                    $event->value = new \stdClass();
+                if ($result === []) {
+                    $result = new \stdClass();
                 }
-                $event->handled = true;
+                $event->handleValue($result);
             }
         ];
     }

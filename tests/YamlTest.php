@@ -108,13 +108,12 @@ myReplace: !yii/helpers/ReplaceArrayValue { foo: [1, bar] }
 EOF;
         $config = [
             'on yii\rbac\Assignment' => function ($event) {
-                $event->value = [
+                $event->handleValue([
                     'customObjVal' => [
                         'id' => $event->value->userId,
                         'role' => $event->value->roleName,
                     ],
-                ];
-                $event->handled = true;
+                ]);
             }
         ];
         $this->assertEquals($expected, Yaml::encode($this->array, $config, 4, 0));
@@ -233,10 +232,13 @@ EOF;
         ];
         $config = [
             'on rbacAssignment' => function ($event) {
-                $event->value = Yii::createObject(ArrayHelper::merge([
-                    'class' => 'yii\rbac\Assignment',
-                ], $event->value->getValue()));
-                $event->handled = true;
+                $event->handleValue(
+                    Yii::createObject(
+                        ArrayHelper::merge([
+                            'class' => 'yii\rbac\Assignment',
+                        ], $event->value->getValue())
+                    )
+                );
             }
         ];
 
