@@ -243,7 +243,7 @@ echo $yaml;
 #     john:
 #         id: 1
 #         name: John
-#     bob://yii\helpers\ReplaceArrayValue
+#     bob: !yii/helpers/ReplaceArrayValue
 #         id: 1001
 #         name: Bob
 #     jane: !yii/helpers/UnsetArrayValue {}
