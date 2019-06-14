@@ -137,7 +137,7 @@ class Dumper extends Component
                 ]);
                 $this->trigger(get_class($value), $event);
                 if ($event->handled) {
-                    $value = $event->value;
+                    $value = $event->getRawValue();
                     $handled = true;
                 }
             }
@@ -156,7 +156,7 @@ class Dumper extends Component
                 ]);
                 $this->trigger(self::EVENT_UNHANDLED_OBJECT, $event);
                 if ($event->handled) {
-                    $value = $event->value;
+                    $value = $event->getRawValue();
                 }
             }
         }

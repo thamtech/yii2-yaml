@@ -117,15 +117,13 @@ class BaseYaml
         return [
             'class' => Parser::class,
             'on yii/helpers/UnsetArrayValue' => function ($event) {
-                $taggedValue = $event->value;
-                if (!empty($taggedValue->getValue())) {
-                    throw new InvalidArgumentException(sprintf('A !yii/helpers/UnsetArrayValue tag cannot contain a value. The value provided was %s', json_encode($taggedValue->getValue())));
+                if (!empty($event->value)) {
+                    throw new InvalidArgumentException(sprintf('A !yii/helpers/UnsetArrayValue tag cannot contain a value. The value provided was %s', json_encode($event->value)));
                 }
                 $event->handleValue(new UnsetArrayValue());
             },
             'on yii/helpers/ReplaceArrayValue' => function ($event) {
-                $taggedValue = $event->value;
-                $event->handleValue(new ReplaceArrayValue($taggedValue->getValue()));
+                $event->handleValue(new ReplaceArrayValue($event->value));
             }
         ];
     }

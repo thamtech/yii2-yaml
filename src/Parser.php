@@ -113,7 +113,7 @@ class Parser extends Component
             ]);
             $this->trigger($value->getTag(), $event);
             if ($event->handled) {
-                $value = $event->value;
+                $value = $event->getRawValue();
             }
         }
 

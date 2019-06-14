@@ -131,7 +131,7 @@ use thamtech\yaml\helpers\Yaml;
 $data = Yaml::decode($yaml, [
     'on lookupIdFromEmployeeNumber' => function ($event) {
         // get the value associated with the `!lookupIdFromEmployeeNumber` tag
-        $value = $event->value->getValue();
+        $value = $event->value;
         
         // find the person's id and add it to the value
         $value['id'] = Employee::find()

@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 - `$event->handleValue($value)` shortcut for setting the `value`, and setting
   `$event->handled = true`.
 
+### Changed
+- *Breaking Change* - Automatically unwrap value from inside TaggedValue during
+  parsing
+
 
 [v0.1.0]
 --------

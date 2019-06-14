@@ -236,7 +236,7 @@ EOF;
                     Yii::createObject(
                         ArrayHelper::merge([
                             'class' => 'yii\rbac\Assignment',
-                        ], $event->value->getValue())
+                        ], $event->value)
                     )
                 );
             }
