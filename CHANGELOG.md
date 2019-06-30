@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+
+[v0.3.1]
+--------
+
+### Fixed
+- ValueEvent should not automatically unwrap the TaggedValue value in
+  `Symfony\Component\Yaml\Tag\TaggedValue-{tagName}` events.
+
+
 [v0.3.0]
 --------
 
@@ -17,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 
 ### Fixed
 - Inner values of parsed TaggedValue objects should be processed
+
 
 [v0.2.0]
 --------

@@ -79,7 +79,7 @@ class ValueEvent extends Event
      */
     private function unwrapTaggedValue()
     {
-        if ($this->name == TaggedValue::class) {
+        if (0 === strpos($this->name, TaggedValue::class)) {
             // if the event name is the TaggedValue class, then the event
             // handlers will be expecting a TaggedValue object, so we shouldn't
             // unwrap it

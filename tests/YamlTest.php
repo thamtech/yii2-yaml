@@ -482,12 +482,20 @@ EOF;
             ],
         ];
 
+        $eventValue = null;
+
         $config = [
             'on join' => function ($event) {
                 $event->handleValue(join('-', $event->value));
             },
+            'on Symfony\Component\Yaml\Tag\TaggedValue-join' => function ($event) use (&$eventValue) {
+                $eventValue = $event->getValue();
+            },
         ];
 
         $this->assertEquals($expected, Yaml::decode($yaml, $config));
+
+        $this->assertNotEmpty($eventValue);
+        $this->assertInstanceOf(\Symfony\Component\Yaml\Tag\TaggedValue::class, $eventValue);
     }
 }
