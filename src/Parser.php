@@ -106,15 +106,8 @@ class Parser extends Component
      */
     protected function postProcess($value)
     {
-        if ($value instanceof TaggedValue && $this->hasEventHandlers($value->getTag())) {
-            $event = Yii::createObject([
-                'class' => ValueEvent::class,
-                'value' => $value,
-            ]);
-            $this->trigger($value->getTag(), $event);
-            if ($event->handled) {
-                $value = $event->getRawValue();
-            }
+        if ($value instanceof TaggedValue) {
+            $value = $this->processTaggedValue($value);
         }
 
         if (!is_array($value)) {
@@ -123,6 +116,35 @@ class Parser extends Component
 
         foreach ($value as $k=>&$v) {
             $v = $this->postProcess($v);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Process the TaggedValue object.
+     *
+     * Fire any events necessary to handle the TaggedVale object which may
+     * result in a modified or replacement value.
+     *
+     * @param  TaggedValue $value [description]
+     *
+     * @return mixed the value after processing. This may or may not be a
+     * TaggedValue instance.
+     */
+    protected function processTaggedValue(TaggedValue $value)
+    {
+        $tag = $value->getTag();
+
+        if ($this->hasEventHandlers($tag)) {
+            $event = Yii::createObject([
+                'class' => ValueEvent::class,
+                'value' => $value,
+            ]);
+            $this->trigger($tag, $event);
+            if ($event->handled) {
+                $value = $event->getRawValue();
+            }
         }
 
         return $value;
