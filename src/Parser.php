@@ -136,7 +136,34 @@ class Parser extends Component
     {
         $tag = $value->getTag();
 
+        // process by any raw TaggedValue event handlers
+        $unprocessedEventName = join('-', [TaggedValue::class, $tag]);
+        if ($this->hasEventHandlers($unprocessedEventName)) {
+            // send an event with the unprocessed inner value
+            $event = Yii::createObject([
+                'class' => ValueEvent::class,
+                'value' => $value,
+            ]);
+            $this->trigger($unprocessedEventName, $event);
+            if ($event->handled) {
+                $value = $event->getRawValue();
+            }
+        }
+
+        // unwrap the inner value from inside the TaggedValue instance
+        if ($value instanceof TaggedValue) {
+            $value = $value->getvalue();
+        }
+
+        // process the inner value
+        $value = $this->postProcess($value);
+
+        // wrap it back up into a new TaggedValue instance
+        $value = new TaggedValue($tag, $value);
+
+        // process by any tag event handlers
         if ($this->hasEventHandlers($tag)) {
+            // send an event with the processed inner value
             $event = Yii::createObject([
                 'class' => ValueEvent::class,
                 'value' => $value,

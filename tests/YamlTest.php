@@ -431,4 +431,63 @@ EOF;
 
         $this->assertEquals($expected, Yaml::decode($yaml, $config));
     }
+
+    public function testDecodeWrappedValueProcessingWithInnerTagHandler()
+    {
+        $yaml = <<<'EOF'
+root:
+    tag: !tagged
+        foo: bar
+        inner: !yii/helpers/ReplaceArrayValue
+            abc: def
+
+EOF;
+
+        $expected = [
+            'root' => [
+                'tag' => new \Symfony\Component\Yaml\Tag\TaggedValue('tagged', [
+                    'foo' => 'bar',
+                    'inner' => new \yii\helpers\ReplaceArrayValue([
+                        'abc' => 'def',
+                    ]),
+                ]),
+            ],
+        ];
+
+        $this->assertEquals($expected, Yaml::decode($yaml));
+    }
+
+    public function testDecodeWrappedValueProcessingWithInnerAndOuterTagHandlers()
+    {
+        $yaml = <<<'EOF'
+root:
+    control: !join
+        - abc
+        - 123
+    item: !yii/helpers/ReplaceArrayValue
+        foo: bar
+        experimental: !join
+            - def
+            - 456
+
+EOF;
+
+        $expected = [
+            'root' => [
+                'control' => 'abc-123',
+                'item' => new \yii\helpers\ReplaceArrayValue([
+                    'foo' => 'bar',
+                    'experimental' => 'def-456',
+                ])
+            ],
+        ];
+
+        $config = [
+            'on join' => function ($event) {
+                $event->handleValue(join('-', $event->value));
+            },
+        ];
+
+        $this->assertEquals($expected, Yaml::decode($yaml, $config));
+    }
 }
