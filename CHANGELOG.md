@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org).
 
 
+[v0.3.2]
+--------
+
+### Changed
+- Improved support for custom handlers based on class or interface names. Values
+  can now be handled by any class, superclass, or interface implemented by the
+  value. Previously, on the value's `get_class()` result could be configured as
+  a handler.
+
+
 [v0.3.1]
 --------
 

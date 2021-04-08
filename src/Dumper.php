@@ -130,15 +130,26 @@ class Dumper extends Component
     {
         if (is_object($value)) {
             $handled = false;
-            if ($this->hasEventHandlers(get_class($value))) {
-                $event = Yii::createObject([
-                    'class' => ValueEvent::class,
-                    'value' => $value,
-                ]);
-                $this->trigger(get_class($value), $event);
-                if ($event->handled) {
-                    $value = $event->getRawValue();
-                    $handled = true;
+
+            // prepare a list of $value's class, ancestor classes, interfaces,
+            // and ancestor interfaces:
+            $classes = array_merge(
+                [get_class($value) => get_class($value)],
+                class_parents($value),
+                class_implements($value));
+
+            foreach ($classes as $class) {
+                if ($this->hasEventHandlers($class)) {
+                    $event = Yii::createObject([
+                        'class' => ValueEvent::class,
+                        'value' => $value,
+                    ]);
+                    $this->trigger($class, $event);
+                    if ($event->handled) {
+                        $value = $event->getRawValue();
+                        $handled = true;
+                        break;
+                    }
                 }
             }
 

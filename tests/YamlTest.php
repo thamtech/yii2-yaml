@@ -6,6 +6,24 @@ use thamtech\yaml\helpers\Yaml;
 use yii\helpers\ArrayHelper;
 use Yii;
 
+class TestArrayable extends \yii\base\Model
+{
+    public $foo = 'foo3';
+    public $bar = 'bar7';
+
+    public function getFooBar()
+    {
+        return 'foobar11';
+    }
+
+    public function fields()
+    {
+        return array_merge(parent::fields(), [
+            'fooBar' => 'fooBar',
+        ]);
+    }
+}
+
 class YamlTest extends \thamtechunit\yaml\TestCase
 {
     protected $array;
@@ -45,6 +63,26 @@ class YamlTest extends \thamtechunit\yaml\TestCase
     public function testDecodeEmpty()
     {
         $this->assertNull(Yaml::decode(''));
+    }
+
+    public function testEncodeArrayable()
+    {
+        $value = new TestArrayable();
+        $arr = $value->toArray();
+        $this->assertEquals([
+            'foo' => 'foo3',
+            'bar' => 'bar7',
+            'fooBar' => 'foobar11',
+        ], $arr);
+
+        $expected = <<<'EOF'
+foo: foo3
+bar: bar7
+fooBar: foobar11
+
+EOF;
+
+        $this->assertEquals($expected, Yaml::encode($value, [], 4, 0));
     }
 
     public function testEncodeDefault()
