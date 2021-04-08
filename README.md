@@ -344,8 +344,14 @@ use thamtech\yaml\helpers\Yaml;
 
 Yii::$container->setDefinitions([
     'thamtech\yaml\Parser' => Yaml::getParserDefinition([
+        // example: we are calling getParserDefinition() to use `Yaml`'s default
+        // definitions as a base, but these lines shows how we can alter those
+        // default definitions. In this case, we remove the 'ReplaceArrayValue'
+        // and 'UnsetArrayValue' handlers by unsetting their array keys:
         'on yii/helpers/ReplaceArrayValue' => new \yii\helpers\UnsetArrayValue(),
         'on yii/helpers/UnsetArrayValue' => new \yii\helpers\UnsetArrayValue(),
+        
+        // example: adding your own handler
         'on lookupIdFromEmployeeNumber' => function ($event) {
             // get the value associated with the `!lookupIdFromEmployeeNumber` tag
             $value = $event->value;
@@ -367,8 +373,14 @@ Yii::$container->setDefinitions([
         },
     ]),
     'thamtech\yaml\Dumper' => Yaml::getDumperDefinition([
+        // example: we are calling getDumperDefinition() to use `Yaml`'s default
+        // definitions as a base, but these lines shows how we can alter those
+        // default definitions. In this case, we remove the 'ReplaceArrayValue'
+        // and 'UnsetArrayValue' handlers by unsetting their array keys:
         'on yii/helpers/ReplaceArrayValue' => new \yii\helpers\UnsetArrayValue(),
         'on yii/helpers/UnsetArrayValue' => new \yii\helpers\UnsetArrayValue(),
+        
+        // example: adding your own handler
         'on Some\Package\EmployeeWithoutId' => function ($event) {
             // get the EmployeeWithoutId object
             $value = $event->value;
