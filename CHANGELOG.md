@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 ### Changed
 - Bump phpunit version
 - Require PHP >=7.2.5
+- Expand supported versions of upstream `symfony/yaml` library
 
 
 [v0.3.3]
