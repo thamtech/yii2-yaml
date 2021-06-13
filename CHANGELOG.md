@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org).
 
 
+[v1.0.0]
+--------
+
+### Changed
+- Bump phpunit version
+- Require PHP >=7.2.5
+
+
 [v0.3.3]
 --------
 

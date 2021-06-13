@@ -7,7 +7,7 @@ use Yii;
 
 class SymfonyParserTest extends ParserTest
 {
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->parser = Yii::createObject('thamtech\yaml\Parser');

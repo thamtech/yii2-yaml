@@ -28,7 +28,7 @@ class YamlTest extends \thamtechunit\yaml\TestCase
 {
     protected $array;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
         $this->array = [
