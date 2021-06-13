@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 - Add `asset-packagist.org` repository
 - Bump phpunit version
 
+### Fixed
+- Restrict upstream `symfony/yaml` to `<=3.4.29` to maintain support for
+  custom tags with empty values such as `UnsetArrayValue`.
+
 
 [v0.3.2]
 --------
