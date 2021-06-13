@@ -108,9 +108,15 @@ myCustomObj:
     userId: 12
     roleName: foo
     createdAt: null
-myCustomTag: !customTag { foo: [1, bar] }
-myUnset: !yii/helpers/UnsetArrayValue {  }
-myReplace: !yii/helpers/ReplaceArrayValue { foo: [1, bar] }
+myCustomTag: !customTag
+    foo:
+        - 1
+        - bar
+myUnset: !yii/helpers/UnsetArrayValue null
+myReplace: !yii/helpers/ReplaceArrayValue
+    foo:
+        - 1
+        - bar
 
 EOF;
         $this->assertEquals($expected, Yaml::encode($this->array, [], 4, 0));
@@ -139,9 +145,15 @@ myCustomObj:
     customObjVal:
         id: 12
         role: foo
-myCustomTag: !customTag { foo: [1, bar] }
-myUnset: !yii/helpers/UnsetArrayValue {  }
-myReplace: !yii/helpers/ReplaceArrayValue { foo: [1, bar] }
+myCustomTag: !customTag
+    foo:
+        - 1
+        - bar
+myUnset: !yii/helpers/UnsetArrayValue null
+myReplace: !yii/helpers/ReplaceArrayValue
+    foo:
+        - 1
+        - bar
 
 EOF;
         $config = [
@@ -155,6 +167,39 @@ EOF;
             }
         ];
         $this->assertEquals($expected, Yaml::encode($this->array, $config, 4, 0));
+    }
+
+    public function testDecodeUnsetArrayValueTags()
+    {
+        $this->assertFalse(Yii::$container->has('thamtech\yaml\Parser'));
+        Yii::$container->set('thamtech\yaml\Parser');
+
+        $yaml = <<<'EOF'
+myCustomTag: !customTag { foo: [1, bar] }
+myUnsetFalse: !yii/helpers/UnsetArrayValue false
+myUnsetNull: !yii/helpers/UnsetArrayValue null
+myUnsetEmptyString: !yii/helpers/UnsetArrayValue ''
+myUnsetEmptyMap: !yii/helpers/UnsetArrayValue {  }
+myUnsetEmptyArray: !yii/helpers/UnsetArrayValue []
+myReplace: !yii/helpers/ReplaceArrayValue { foo: [1, bar] }
+
+EOF;
+
+        $expected = [
+            'myCustomTag' => new \Symfony\Component\Yaml\Tag\TaggedValue('customTag', ['foo' => [1, 'bar']]),
+            'myUnsetFalse' => new \yii\helpers\UnsetArrayValue(),
+            'myUnsetNull' => new \yii\helpers\UnsetArrayValue(),
+            'myUnsetEmptyString' => new \yii\helpers\UnsetArrayValue(),
+            'myUnsetEmptyMap' => new \yii\helpers\UnsetArrayValue(),
+            'myUnsetEmptyArray' => new \yii\helpers\UnsetArrayValue(),
+            'myReplace' => new \Symfony\Component\Yaml\Tag\TaggedValue('yii/helpers/ReplaceArrayValue', ['foo' => [1, 'bar']]),
+        ];
+
+        $this->assertEquals($expected, Yaml::decode($yaml, [
+            'on yii/helpers/UnsetArrayValue' => function ($event) {
+                $event->handleValue(new \yii\helpers\UnsetArrayValue());
+            },
+        ]));
     }
 
     public function testDecodeProvidedDefaultParserWithHandlers()
@@ -184,7 +229,7 @@ myCustomObj:
     roleName: foo
     createdAt: null
 myCustomTag: !customTag { foo: [1, bar] }
-myUnset: !yii/helpers/UnsetArrayValue {  }
+myUnset: !yii/helpers/UnsetArrayValue null
 myReplace: !yii/helpers/ReplaceArrayValue { foo: [1, bar] }
 
 EOF;

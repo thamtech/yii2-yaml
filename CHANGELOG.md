@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 - Bump phpunit version
 - Require PHP >=7.2.5
 - Expand supported versions of upstream `symfony/yaml` library
+- `UnsetArrayValue` tags now encode with a `null` value instead of `{  }`. This
+  is due to a change in the upstream `symfony/yaml` library.
 
 
 [v0.3.3]

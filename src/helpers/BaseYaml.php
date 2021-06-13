@@ -246,7 +246,7 @@ class BaseYaml
 
         return [
             'on yii\helpers\UnsetArrayValue' => function ($event) {
-                $event->handleValue(new TaggedValue('yii/helpers/UnsetArrayValue', []));
+                $event->handleValue(new TaggedValue('yii/helpers/UnsetArrayValue', null));
             },
             'on yii\helpers\ReplaceArrayValue' => function ($event) {
                 $replaceArrayValue = $event->value;

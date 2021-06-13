@@ -67,8 +67,8 @@ people:
         id: 1001
         name: Bob
     # The `unsetArrayValue` handler requires that the associated value be
-    # empty, so inline `{}` or `[]` values just fine.
-    jane: !yii/helpers/UnsetArrayValue {}
+    # empty, so use an inline `{}`, `[]`, `false`, or `null` value.
+    jane: !yii/helpers/UnsetArrayValue null
     susan: !lookupIdFromEmployeeNumber
         employee_number: 1234
         name: Susan
@@ -249,7 +249,7 @@ echo $yaml;
 #     bob: !yii/helpers/ReplaceArrayValue
 #         id: 1001
 #         name: Bob
-#     jane: !yii/helpers/UnsetArrayValue {}
+#     jane: !yii/helpers/UnsetArrayValue null
 #     susan: null
 ```
 
@@ -297,7 +297,7 @@ echo $yaml;
 #     bob: !yii/helpers/ReplaceArrayValue/
 #         id: 1001
 #         name: Bob
-#     jane: !yii/helpers/UnsetArrayValue {}
+#     jane: !yii/helpers/UnsetArrayValue null
 #     susan: !lookupIdFromEmployeeNumber
 #         employee_number: 1234
 #         name: Susan
